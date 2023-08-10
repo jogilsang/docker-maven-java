@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install: # Install AWS cli, maven
     runtime-versions:
-      golang: 1.20
+      golang: 1.20 
     commands:
        - sudo yum update -y
        - curl -o aws-iam-authenticator https://s3.us-west-2.amazonaws.com/amazon-eks/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
@@ -19,7 +19,6 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...  
-      - go build hello.go
       - docker build . -t $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION -f Dockerfile && cd ../..
       - docker tag $IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
  
