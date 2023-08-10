@@ -1,11 +1,22 @@
 package main
-import "fmt"
+
+import (
+    "fmt"
+    "html"
+    "log"
+    "net/http"
+)
 
 func main() {
-  fmt.Println("hello world")
-  fmt.Println("1+1 =", 1+1)
-  fmt.Println("7.0/3.0 =", 7.0/3.0)
-  fmt.Println(true && false)
-  fmt.Println(true || false)
-  fmt.Println(!true)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	})
+
+	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hi")
+	})
+
+	log.Fatal(http.ListenAndServe(":9000", nil))
+
 }
