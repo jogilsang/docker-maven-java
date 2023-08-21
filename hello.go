@@ -2,21 +2,26 @@ package main
 
 import (
     "fmt"
-    "html"
+    "html/template"
     "log"
     "net/http"
 )
 
 func main() {
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	})
+    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hi")
-	})
+        tmpl, err := template.ParseFiles("./static/index.html")
+        if err != nil {
+            log.Fatal(err)
+        }
+        tmpl.Execute(w, "Hello World!")
+    })
 
-	log.Fatal(http.ListenAndServe(":8081", nil))
+    http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintf(w, "Hi")
+    })
+
+    log.Fatal(http.ListenAndServe(":8081", nil))
 
 }

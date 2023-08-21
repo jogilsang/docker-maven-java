@@ -1,7 +1,12 @@
+# STEP-1
 FROM golang:1.20-alpine
-#Copy the build's output binary from the previous build container
+
+# STEP-2
 COPY hello.go .
+COPY ./static .
+
+# STEP-3
 RUN go build hello.go
-#COPY hello hello
-# ENTRYPOINT ["hello"]
+
+# STEP-4
 CMD ["./hello"]
