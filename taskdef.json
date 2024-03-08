@@ -1,15 +1,14 @@
 {
-    "family": "ecsdemo-cicd",
+    "family": "TASK_FAMILY",
     "containerDefinitions": [
         {
-            "name": "ecsdemo-cicd",
+            "name": "CONTAINER_NAME",
             "image": "<IMAGE1_NAME>",
             "cpu": 0,
             "portMappings": [
                 {
-                    "name": "ecsdemo-cicd-8081-tcp",
-                    "containerPort": 8081,
-                    "hostPort": 8081,
+                    "containerPort": CONTAINER_PORT,
+                    "hostPort": HOST_PORT,
                     "protocol": "tcp",
                     "appProtocol": "http"
                 }
@@ -33,8 +32,8 @@
             "systemControls": []
         }
     ],
-    "taskRoleArn": "arn:aws:iam::247553399539:role/ecsTaskExecutionRole",
-    "executionRoleArn": "arn:aws:iam::247553399539:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "requiresCompatibilities": [
         "FARGATE"

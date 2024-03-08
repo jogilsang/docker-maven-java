@@ -11,7 +11,7 @@ func main() {
 
     http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-        tmpl, err := template.ParseFiles("./static/index.html")
+        tmpl, err := template.ParseFiles("./static/blue_index.html")
         if err != nil {
             log.Fatal(err)
         }

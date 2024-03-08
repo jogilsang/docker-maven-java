@@ -23,26 +23,28 @@ phases:
       
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME
 
       - docker build . -t $ECR_REPO_NAME:latest -f Dockerfile
-      - docker tag $ECR_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG
-      # - docker tag $ECR_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME:latest
+      - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:$IMAGE_TAG
+      # - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:latest
  
   post_build: 
     commands: 
       - echo Build completed on `date` 
       - echo Pushing the Docker image... 
 
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG 
-      # - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG 
+      # - docker push $REPOSITORY_URI:latest
 
       - printf '{\n"ImageURI":"%s"\n}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
 
-      # TODO : ECS CI/CD를 위한 설정
+      # TODO : ECS CI/CD 사용 시 동적으로 사용을 원할경우
       # - sed -i "s/CONTAINER_NAME/$CONTAINER_NAME/" appspec.yaml
       # - sed -i "s/CONTAINER_PORT/$CONTAINER_PORT/" appspec.yaml
       # - sed -i "s/CONTAINER_NAME/$CONTAINER_NAME/" taskdef.json
       # - sed -i "s/CONTAINER_PORT/$CONTAINER_PORT/" taskdef.json
+      # - sed -i "s/HOST_PORT/$HOST_PORT/" taskdef.json
       # - sed -i "s/TASK_FAMILY/$TASK_FAMILY/" taskdef.json
       # - echo Writing image definitions file...
 
