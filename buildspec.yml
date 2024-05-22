@@ -27,7 +27,7 @@ phases:
 
       - docker build . -t $ECR_REPO_NAME:latest -f Dockerfile
       - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:$IMAGE_TAG
-      # - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:latest
+      - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:latest
  
   post_build: 
     commands: 
@@ -35,7 +35,7 @@ phases:
       - echo Pushing the Docker image... 
 
       - docker push $REPOSITORY_URI:$IMAGE_TAG 
-      # - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:latest
 
       - printf '{\n"ImageURI":"%s"\n}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
 
