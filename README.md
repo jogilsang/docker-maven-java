@@ -1,7 +1,7 @@
 # repo-app-source
 repo-app-source
 
-- CodeCommit
+- Github
 - CodeBuild
   - Dockerfile
   - buildspec.yml
