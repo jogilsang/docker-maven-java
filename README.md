@@ -1,7 +1,7 @@
 # repo-app-source
 repo-app-source
 
-- Github
+- Github (Enable Other service EX : Gitlab)
 - CodeBuild
   - Dockerfile
   - buildspec.yml
