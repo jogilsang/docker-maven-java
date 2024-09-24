@@ -1,43 +1,76 @@
 version: 0.2
 
 phases:
-  install: # Install AWS cli, maven
+  install: # Install AWS CLI, IAM Authenticator, and Maven
     runtime-versions:
       golang: 1.20 
+      # Go 언어의 런타임 버전 1.20을 사용합니다.
     commands:
        - sudo yum update -y
+       # 시스템 패키지를 최신 상태로 업데이트합니다.
+
        - curl -o aws-iam-authenticator https://s3.us-west-2.amazonaws.com/amazon-eks/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
+       # AWS IAM Authenticator를 다운로드합니다. 이는 AWS와 EKS 통합을 위한 도구입니다.
+
        - chmod +x ./aws-iam-authenticator
+       # aws-iam-authenticator에 실행 권한을 부여합니다.
+
        - mkdir -p $HOME/bin && cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && export PATH=$PATH:$HOME/bin
+       # aws-iam-authenticator를 사용자 경로($HOME/bin)로 이동시키고 PATH에 추가합니다.
+
        - aws sts get-caller-identity
+       # 현재 AWS 사용자 또는 역할이 제대로 설정되었는지 확인하기 위해 STS(GetCallerIdentity) 명령을 실행합니다.
  
-  pre_build: # Check availability of Maven and it's version, Integration of Aquasecurity with AWS SecurityHub if not enabled
+  pre_build: # Authenticate Docker with Amazon ECR
     commands:
       - echo Logging in to Amazon ECR...
+      # Amazon ECR에 로그인 중임을 알리는 메시지를 출력합니다.
+      
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      # AWS ECR에 도커 로그인을 위한 인증 토큰을 가져와 Docker에 전달합니다.
 
-  build: # Build Docker image,tag it with the commit sha, Scan the docker image using trivy, push the docker image to ECR
+  build: # Build Docker image and tag it with commit hash
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...  
+      # 빌드가 시작된 날짜를 출력합니다.
       
+      - echo Building the Docker image...
+      # 도커 이미지 빌드 시작 메시지를 출력합니다.
+
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      # 현재 커밋의 해시값에서 첫 7자리를 추출하여 COMMIT_HASH 변수에 저장합니다.
+
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      # IMAGE_TAG 변수에 COMMIT_HASH를 할당합니다. COMMIT_HASH가 비어 있을 경우 "latest"로 설정됩니다.
+
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO_NAME
+      # Amazon ECR의 URI를 REPOSITORY_URI 변수에 저장합니다.
 
       - docker build . -t $ECR_REPO_NAME:latest -f Dockerfile
+      # Dockerfile을 사용해 현재 디렉터리에서 Docker 이미지를 빌드하고 `latest` 태그를 부여합니다.
+
       - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:$IMAGE_TAG
+      # `latest`로 빌드된 이미지를 ECR URI와 커밋 해시 태그로 태깅합니다.
+
       - docker tag $ECR_REPO_NAME:latest $REPOSITORY_URI:latest
+      # `latest` 태그로도 ECR URI에 이미지를 태깅합니다.
  
   post_build: 
     commands: 
       - echo Build completed on `date` 
+      # 빌드 완료 메시지와 완료된 날짜를 출력합니다.
+
       - echo Pushing the Docker image... 
+      # Docker 이미지를 푸시 중임을 알리는 메시지를 출력합니다.
 
       - docker push $REPOSITORY_URI:$IMAGE_TAG 
+      # 커밋 해시 태그가 부여된 이미지를 ECR에 푸시합니다.
+
       - docker push $REPOSITORY_URI:latest
+      # `latest` 태그가 부여된 이미지를 ECR에 푸시합니다.
 
       - printf '{\n"ImageURI":"%s"\n}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
+      # 푸시된 Docker 이미지의 URI를 `imageDetail.json` 파일에 저장합니다.
 
       # TODO : ECS CI/CD 사용 시 동적으로 사용을 원할경우
       # - sed -i "s/CONTAINER_NAME/$CONTAINER_NAME/" appspec.yaml
@@ -47,13 +80,16 @@ phases:
       # - sed -i "s/HOST_PORT/$HOST_PORT/" taskdef.json
       # - sed -i "s/TASK_FAMILY/$TASK_FAMILY/" taskdef.json
       # - echo Writing image definitions file...
+      # ECS CI/CD 사용 시 컨테이너, 포트, 호스트 포트 등 설정을 변경하는 과정이 포함된 주석입니다. 필요 시 이 부분을 활성화할 수 있습니다.
 
 artifacts:
   files:
     - imageDetail.json
     - appspec.yaml
     - taskdef.json
+    # 빌드 결과물로 `imageDetail.json`, `appspec.yaml`, `taskdef.json` 파일을 포함합니다.
 
 cache:
   paths:
     - '/root/.m2/**/*'
+    # Maven 의존성을 캐싱하여 빌드 속도를 향상시킵니다.
